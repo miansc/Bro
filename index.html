@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BRO COUNTER</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            /* Prevents the screen from turning blue when the user fast-taps */
+            user-select: none; 
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Stops "pull-to-refresh" rubber-banding on mobile */
+        }
+
+        .wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 75vh;
+            max-height: 520px;
+            width: 100%;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 2.25rem;
+            letter-spacing: 0.15em;
+            color: #38bdf8;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .display-card {
+            background: #1e293b;
+            border: 3px solid #334155;
+            border-radius: 28px;
+            padding: 30px 55px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+        }
+
+        #counter {
+            font-size: 6.5rem;
+            font-weight: 900;
+            /* Tabular-nums keeps all digit characters the exact same width so the numbers don't jitter left/right */
+            font-variant-numeric: tabular-nums; 
+            color: #f1f5f9;
+            text-shadow: 0 0 25px rgba(56, 189, 248, 0.25);
+        }
+
+        button {
+            background: #0284c7;
+            color: white;
+            border: none;
+            border-radius: 9999px;
+            width: 88%;
+            max-width: 340px;
+            height: 85px;
+            font-size: 2rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.5);
+            transition: transform 0.08s cubic-bezier(0.17, 0.67, 0.83, 0.67), background 0.1s ease;
+            /* Kills the native 300ms mobile browser tap delay */
+            touch-action: manipulation; 
+        }
+
+        button:active {
+            transform: scale(0.94);
+            background: #0369a1;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <h1>BRO COUNTER</h1>
+        
+        <div class="display-card">
+            <div id="counter">000</div>
+        </div>
+
+        <button id="addBtn">+1</button>
+    </div>
+
+    <script>
+        const display = document.getElementById('counter');
+        const button = document.getElementById('addBtn');
+        let count = 0;
+
+        button.addEventListener('click', () => {
+            // Increments, but resets to 000 if it passes 999
+            count = (count + 1) % 1000;
+            
+            // Forces the number into a 3-character string (e.g. 7 becomes "007")
+            display.textContent = String(count).padStart(3, '0');
+
+            // Triggers a light physical haptic vibration on Android devices
+            if ('vibrate' in navigator) {
+                navigator.vibrate(15);
+            }
+        });
+    </script>
+
+</body>
+</html>
