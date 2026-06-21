@@ -28,17 +28,17 @@
         }
 
         #counter {
-            font-size: 7rem;
+            font-size: 6.5rem; /* Slightly smaller to fit 4 digits comfortably */
             font-weight: 900;
             background: #1e1e1e;
-            padding: 30px 50px;
+            padding: 30px 40px;
             border-radius: 20px;
             margin-bottom: 50px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.6);
             font-variant-numeric: tabular-nums;
         }
 
-        button {
+        #addBtn {
             background-color: #273CF5;
             color: white;
             border: none;
@@ -50,24 +50,46 @@
             box-shadow: 0 6px 0 #221675, 0 10px 20px rgba(231, 76, 60, 0.4);
             transition: transform 0.1s, box-shadow 0.1s;
             -webkit-tap-highlight-color: transparent;
+            margin-bottom: 30px; /* Space between Add and Reset buttons */
         }
 
-        button:active {
+        #addBtn:active {
             transform: translateY(6px);
-            box-shadow: 0 0 0 #221675, 0 4px 10px rgba(231, 76, 60, 0.4);
+            box-shadow: 0 0 0 #c0392b, 0 4px 10px rgba(231, 76, 60, 0.4);
+        }
+
+        /* New Reset Button Styles */
+        #resetBtn {
+            background-color: transparent;
+            color: #777;
+            border: 1px solid #444;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #resetBtn:active {
+            background-color: #333;
+            color: #fff;
+            border-color: #777;
         }
     </style>
 </head>
 <body>
 
     <h1>BRO COUNTER</h1>
-    <div id="counter">...</div>
+    <div id="counter">0000</div>
     <button id="addBtn">+ ADD</button>
+    <button id="resetBtn">RESET</button>
 
     <script type="module">
-        // The "SDKs" Firebase mentioned are imported directly here via URL
+        // Added 'set' to the imports to handle the reset function
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, onValue, runTransaction, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         // Your exact Firebase configuration
         const firebaseConfig = {
@@ -84,24 +106,33 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
-        // Create a reference to a specific spot in the database called "broCount"
         const countRef = ref(db, 'broCount');
 
         const counterDisplay = document.getElementById('counter');
         const addBtn = document.getElementById('addBtn');
+        const resetBtn = document.getElementById('resetBtn');
 
         // LISTEN for changes in real-time
         onValue(countRef, (snapshot) => {
             const currentData = snapshot.val() || 0;
-            let displayValue = currentData > 999 ? currentData % 1000 : currentData;
-            counterDisplay.textContent = String(displayValue).padStart(3, '0');
+            // Updated to support 4 digits (wraps to 0000 after 9999)
+            let displayValue = currentData > 9999 ? currentData % 10000 : currentData;
+            counterDisplay.textContent = String(displayValue).padStart(4, '0');
         });
 
-        // WRITE to the database when the button is clicked
+        // ADD logic
         addBtn.addEventListener('click', () => {
             runTransaction(countRef, (currentCount) => {
                 return (currentCount || 0) + 1;
             });
+        });
+
+        // RESET logic
+        resetBtn.addEventListener('click', () => {
+            // Asks for confirmation so nobody resets it by accident
+            if (confirm("Are you sure you want to reset the bro counter for everyone?")) {
+                set(countRef, 0);
+            }
         });
     </script>
 </body>
