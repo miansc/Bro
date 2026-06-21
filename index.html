@@ -5,132 +5,104 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>BRO COUNTER</title>
     <style>
-        * {
-            box-sizing: border-box; margin: 0; padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            user-select: none; -webkit-user-select: none;
-        }
-
+        /* Mobile-first styling */
         body {
-            background-color: #0f172a; color: #f8fafc;
-            height: 100vh; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; overflow: hidden;
-        }
-
-        .wrapper {
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: space-between; height: 75vh; max-height: 520px;
-            width: 100%; padding: 20px;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #121212;
+            color: #ffffff;
+            touch-action: manipulation;
         }
 
         h1 {
-            font-size: 2.25rem; letter-spacing: 0.15em; color: #38bdf8; font-weight: 800;
-        }
-
-        .display-card {
-            background: #1e293b; border: 3px solid #334155; border-radius: 28px;
-            padding: 30px 55px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.4);
-            position: relative;
+            font-size: 2.5rem;
+            letter-spacing: 3px;
+            margin-bottom: 30px;
+            text-align: center;
+            color: #273CF5;
         }
 
         #counter {
-            font-size: 6.5rem; font-weight: 900; font-variant-numeric: tabular-nums;
-            color: #f1f5f9; text-shadow: 0 0 25px rgba(56,189,248,0.25);
+            font-size: 7rem;
+            font-weight: 900;
+            background: #1e1e1e;
+            padding: 30px 50px;
+            border-radius: 20px;
+            margin-bottom: 50px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.6);
+            font-variant-numeric: tabular-nums;
         }
-
-        /* Tiny green dot to show the user they are connected to the live server */
-        .status-dot {
-            position: absolute; top: 14px; right: 16px; width: 8px; height: 8px;
-            background-color: #22c55e; border-radius: 50%; opacity: 0.4;
-            transition: opacity 0.3s;
-        }
-        .status-dot.syncing { opacity: 1; background-color: #38bdf8; }
 
         button {
-            background: #0284c7; color: white; border: none; border-radius: 9999px;
-            width: 88%; max-width: 340px; height: 85px; font-size: 2rem; font-weight: 800;
-            cursor: pointer; box-shadow: 0 10px 25px -5px rgba(2,132,199,0.5);
-            transition: transform 0.08s, background 0.1s; touch-action: manipulation;
+            background-color: #273CF5;
+            color: white;
+            border: none;
+            padding: 20px 60px;
+            font-size: 2rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #221675, 0 10px 20px rgba(231, 76, 60, 0.4);
+            transition: transform 0.1s, box-shadow 0.1s;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        button:active { transform: scale(0.94); background: #0369a1; }
-        
-        .live-label {
-            font-size: 0.7rem; color: #64748b; letter-spacing: 0.2em; margin-top: -10px;
+        button:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 #221675, 0 4px 10px rgba(231, 76, 60, 0.4);
         }
     </style>
 </head>
 <body>
 
-    <div class="wrapper">
-        <h1>BRO COUNTER</h1>
-        
-        <div class="display-card">
-            <div class="status-dot" id="dot"></div>
-            <div id="counter">...</div>
-        </div>
-        <div class="live-label">GLOBAL CLOUD SYNC</div>
+    <h1>BRO COUNTER</h1>
+    <div id="counter">...</div>
+    <button id="addBtn">+ ADD</button>
 
-        <button id="addBtn">+1</button>
-    </div>
+    <script type="module">
+        // The "SDKs" Firebase mentioned are imported directly here via URL
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, onValue, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    <script>
-        // -------------------------------------------------------------------------
-        // !!! WARNING: CHANGE THE STRING BELOW TO SOMETHING SUPER RANDOM !!!
-        // If you leave it as "demo-bro-group-99", you will be sharing a counter 
-        // with everyone else on the internet who copy-pasted this code.
-        // -------------------------------------------------------------------------
-        const GROUP_NAMESPACE = "bro-counter-squad-delta-7721"; 
-        
-        const API_URL = `https://api.counterapi.dev/v1/${GROUP_NAMESPACE}/count`;
-        const display = document.getElementById('counter');
-        const dot = document.getElementById('dot');
-        const button = document.getElementById('addBtn');
-
-        let currentCount = 0;
-
-        const updateScreen = (num) => {
-            // If the global count hits 1,004, this forces the screen to show "004"
-            const safeNum = num % 1000; 
-            display.textContent = String(safeNum).padStart(3, '0');
+        // Your exact Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCQ6D6ACknAc9s63dstLPZ_z5HBXOGcWVs",
+            authDomain: "bro-621.firebaseapp.com",
+            databaseURL: "https://bro-621-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "bro-621",
+            storageBucket: "bro-621.firebasestorage.app",
+            messagingSenderId: "287259008963",
+            appId: "1:287259008963:web:ce3b60b8839a8ed5a86776"
         };
 
-        // 1. Ask the cloud what the number is
-        const getCloudCount = async () => {
-            dot.classList.add('syncing');
-            try {
-                const response = await fetch(API_URL);
-                const data = await response.json();
-                if (typeof data.count === 'number') {
-                    currentCount = data.count;
-                    updateScreen(currentCount);
-                }
-            } catch (err) {
-                console.log("Offline mode active.");
-            } finally {
-                setTimeout(() => dot.classList.remove('syncing'), 400);
-            }
-        };
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        // Create a reference to a specific spot in the database called "broCount"
+        const countRef = ref(db, 'broCount');
 
-        // 2. Tell the cloud someone clicked
-        button.addEventListener('click', () => {
-            // Optimistic UI: Update the screen instantly before the server even answers 
-            // so the user doesn't feel network lag.
-            currentCount++;
-            updateScreen(currentCount);
+        const counterDisplay = document.getElementById('counter');
+        const addBtn = document.getElementById('addBtn');
 
-            if ('vibrate' in navigator) navigator.vibrate(15);
-
-            // Fire-and-forget the +1 to the server behind the scenes
-            fetch(`${API_URL}/up`).catch(() => console.error("Drop packet"));
+        // LISTEN for changes in real-time
+        onValue(countRef, (snapshot) => {
+            const currentData = snapshot.val() || 0;
+            let displayValue = currentData > 999 ? currentData % 1000 : currentData;
+            counterDisplay.textContent = String(displayValue).padStart(3, '0');
         });
 
-        // Pull the count the second the page opens
-        getCloudCount();
-
-        // "The Radar": Check the cloud every 3.5 seconds to see if a friend clicked it
-        setInterval(getCloudCount, 3500);
-
+        // WRITE to the database when the button is clicked
+        addBtn.addEventListener('click', () => {
+            runTransaction(countRef, (currentCount) => {
+                return (currentCount || 0) + 1;
+            });
+        });
     </script>
 </body>
 </html>
